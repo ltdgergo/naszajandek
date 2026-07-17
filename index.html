@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nászajándék</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,500&family=EB+Garamond:ital@0;1&family=Tangerine:wght@700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<style>
+  :root{
+    --paper:#F6EFE2;
+    --paper-shadow:#E4D8BE;
+    --ink:#2B2118;
+    --wine:#5C2331;
+    --wine-dark:#3E1721;
+    --gold:#B08D57;
+    --gold-light:#E3C99A;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background:
+      radial-gradient(ellipse at 50% 20%, var(--wine) 0%, var(--wine-dark) 75%);
+    font-family:'EB Garamond', serif;
+    color:var(--ink);
+    overflow-x:hidden;
+  }
+  .stage{
+    min-height:100dvh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+
+  /* ---------- envelope ---------- */
+  .envelope-wrap{
+    position:relative;
+    width:min(90vw, 380px);
+    aspect-ratio:3/2;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .envelope-wrap.opened{ cursor:default; }
+
+  .envelope-body{
+    position:absolute; inset:0;
+    background:linear-gradient(180deg,#EFE4CC,#E4D5AE);
+    border-radius:6px;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,0.6), 0 0 0 1px rgba(176,141,87,0.4);
+    overflow:hidden;
+  }
+  .envelope-body::before{
+    /* triangular fold lines */
+    content:"";
+    position:absolute; inset:0;
+    background:
+      linear-gradient(135deg, transparent 49.6%, rgba(176,141,87,0.5) 50%, transparent 50.4%),
+      linear-gradient(45deg, transparent 49.6%, rgba(176,141,87,0.5) 50%, transparent 50.4%);
+  }
+
+  .flap{
+    position:absolute;
+    top:0; left:0; width:100%; height:56%;
+    background:linear-gradient(160deg,#E9DAB8,#D9C593);
+    clip-path:polygon(0 0, 100% 0, 50% 100%);
+    transform-origin:top center;
+    transition:transform 1.1s cubic-bezier(.62,-0.02,.3,1.15);
+    box-shadow:0 2px 10px rgba(0,0,0,0.15) inset;
+    z-index:6;
+  }
+  .envelope-wrap.opened .flap{
+    transform:rotateX(180deg);
+  }
+
+  .letter{
+    position:absolute;
+    left:6%; right:6%;
+    bottom:6%;
+    height:82%;
+    background:var(--paper);
+    border-radius:2px;
+    box-shadow:0 -6px 20px rgba(0,0,0,0.25);
+    z-index:4;
+    transform:translateY(6%);
+    transition:transform 1.4s cubic-bezier(.2,.7,.2,1) 0.55s;
+    padding:9% 8%;
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+  }
+  .envelope-wrap.opened .letter{
+    transform:translateY(-38%);
+  }
+  .letter .eyebrow{
+    font-family:'Cormorant Garamond', serif;
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    font-size:11px;
+    color:var(--wine);
+    opacity:0.75;
+  }
+  .letter .names{
+    font-family:'Tangerine', cursive;
+    font-size:52px;
+    line-height:1;
+    color:var(--wine);
+    margin:2px 0 6px;
+  }
+  .letter p{
+    font-size:16px;
+    line-height:1.55;
+    margin:0;
+    color:var(--ink);
+  }
+  .letter .sign{
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-size:15px;
+    margin-top:8px;
+    color:var(--wine);
+  }
+
+  .seal{
+    position:absolute;
+    top:44%; left:50%;
+    width:78px; height:78px;
+    transform:translate(-50%,-50%);
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #C79F5F, var(--gold) 55%, #8B6B3A 100%);
+    box-shadow:0 6px 14px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -3px 6px rgba(0,0,0,0.35);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Cormorant Garamond', serif;
+    font-size:26px; letter-spacing:1px;
+    color:#3E2E12;
+    z-index:8;
+    transition:transform 0.5s cubic-bezier(.5,-0.4,.6,1.4), opacity 0.5s ease;
+  }
+  .envelope-wrap.opened .seal{
+    transform:translate(-50%,-50%) scale(0.4) rotate(35deg);
+    opacity:0;
+  }
+
+  .hint{
+    position:absolute;
+    bottom:-42px; left:0; right:0;
+    text-align:center;
+    color:var(--gold-light);
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-size:15px;
+    letter-spacing:0.03em;
+    opacity:0.85;
+    transition:opacity 0.5s ease;
+  }
+  .envelope-wrap.opened .hint{ opacity:0; }
+
+  @media (prefers-reduced-motion: reduce){
+    .flap, .letter, .seal{ transition-duration:0.2s !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="envelope-wrap" id="envelope" role="button" tabindex="0" aria-label="Boríték kinyitása">
+    <div class="envelope-body">
+        <div class="letter">
+            <span class="eyebrow">Dear</span>
+            <!-- SZERKESZD ITT: a pár nevei -->
+            <div class="names">Hanna &amp; Kristóf</div>
+            <!-- SZERKESZD ITT: az üzenet szövege -->
+            <p>
+                Wishing you both all the happiness in the world! 💛<br><br>
+                A little surprise is on its way to you. It should reach your bank account by tomorrow morning at the latest — hopefully it'll make you smile!
+            </p>
+            <!-- SZERKESZD ITT: aláírás -->
+            <div class="sign">— Melinda &amp; Gergő</div>
+        </div>
+      </div>
+      <div class="flap"></div>
+      <div class="seal">A&amp;B</div>
+    </div>
+    <div class="hint">Break the seal</div>
+  </div>
+</div>
+
+<script>
+  // ============== EMAILJS BEÁLLÍTÁSOK — EZT KELL KITÖLTENED ==============
+  // 1) Regisztrálj a https://www.emailjs.com oldalon (ingyenes)
+  // 2) "Email Services" -> Add New Service -> kösd össze a Gmail/Outlook fiókoddal -> másold ki a Service ID-t
+  // 3) "Email Templates" -> Create New Template -> másold ki a Template ID-t
+  // 4) "Account" -> "General" -> másold ki a Public Key-t
+  const EMAILJS_PUBLIC_KEY  = "8sV5p4UXBR2KmAmqL-T";
+  const EMAILJS_SERVICE_ID  = "service_g8f1d6j-T";
+  const EMAILJS_TEMPLATE_ID = "template_6rdgykp-T";
+  // =========================================================================
+
+  const envelope = document.getElementById('envelope');
+  let opened = false;
+
+  function openEnvelope(){
+    if (opened) return;
+    opened = true;
+    envelope.classList.add('opened');
+    notifyOpened();
+  }
+
+  envelope.addEventListener('click', openEnvelope);
+  envelope.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') openEnvelope();
+  });
+
+  function notifyOpened(){
+    try{
+      if (typeof emailjs === 'undefined') return;
+      emailjs.init(EMAILJS_PUBLIC_KEY);
+      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        message: "Kibontották a nászajándék-borítékot! 🎉",
+        time: new Date().toLocaleString('hu-HU')
+      }).then(
+        () => console.log('Értesítő email elküldve.'),
+        (err) => console.log('Email küldési hiba:', err)
+      );
+    }catch(err){
+      console.log('EmailJS hiba:', err);
+    }
+  }
+</script>
+
+</body>
+</html>
